@@ -132,6 +132,7 @@ export default function DashboardPage() {
   }
 
   return (
+    <div className="app-shell">
     <section className="app-card">
       <h1 className="app-title">User Dashboard</h1>
       {loading ? <p className="app-copy">Loading...</p> : null}
@@ -185,5 +186,6 @@ export default function DashboardPage() {
         Logout
       </button>
     </section>
+    </div>
   );
 }

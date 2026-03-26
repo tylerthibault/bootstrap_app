@@ -8,7 +8,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body style={cssVariables as React.CSSProperties}>
-        <main className="app-shell">{children}</main>
+        <main>{children}</main>
       </body>
     </html>
   );
