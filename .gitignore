@@ -1,0 +1,28 @@
+# Node modules
+node_modules/
+
+# Build and cache outputs
+dist/
+build/
+coverage/
+.next/
+.expo/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# OS/editor files
+.DS_Store
+.vscode/
+.idea/
+
+# Logs
+*.log
