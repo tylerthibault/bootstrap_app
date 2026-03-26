@@ -1,8 +1,8 @@
 export default function PrivacyPage() {
   return (
-    <main>
-      <h1>Privacy</h1>
-      <p>Privacy policy placeholder.</p>
+    <main className="page-card">
+      <h1 className="page-title">Privacy</h1>
+      <p className="page-copy">Privacy policy placeholder.</p>
     </main>
   );
 }

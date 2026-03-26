@@ -1,8 +1,8 @@
 export default function DocsPage() {
   return (
-    <main>
-      <h1>Docs</h1>
-      <p>Public documentation landing page placeholder.</p>
+    <main className="page-card">
+      <h1 className="page-title">Docs</h1>
+      <p className="page-copy">Public documentation landing page placeholder.</p>
     </main>
   );
 }

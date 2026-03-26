@@ -12,8 +12,25 @@
   },
   "scripts": {
     "install": "node ./scripts/install.mjs",
+    "bootstrap": "node ./scripts/bootstrap.mjs",
     "lint": "node ./scripts/lint.mjs",
     "test": "node ./scripts/test.mjs",
-    "dev": "node ./scripts/dev.mjs"
+    "dev": "node ./scripts/dev.mjs",
+    "release:validate": "node ./scripts/release-validate.mjs",
+    "release:notes": "cat ./scripts/release-notes-template.md"
+  },
+  "overrides": {
+    "react-native-screens": "4.11.1",
+    "react-native-safe-area-context": "5.4.0",
+    "@react-navigation/native-stack": {
+      "react-native-screens": "4.11.1",
+      "react-native-safe-area-context": "5.4.0"
+    },
+    "@react-navigation/elements": {
+      "react-native-safe-area-context": "5.4.0"
+    }
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3"
   }
 }

@@ -30,6 +30,7 @@ npm install
 ```
 
 Expected result:
+
 - Install completes without fatal errors.
 
 ## 3. Backend smoke run (Flask + DB)
@@ -54,6 +55,7 @@ sqlite3 bootstrap.db "select name from roles order by name;"
 ```
 
 Expected result:
+
 - Query output includes:
   - `admin`
   - `user`
@@ -72,6 +74,7 @@ curl http://127.0.0.1:5000/ready
 ```
 
 Expected result:
+
 - `health` returns JSON with `status: ok`
 - `ready` returns JSON with `status: ready`
 
@@ -86,6 +89,7 @@ npm run dev
 ```
 
 Open in browser:
+
 - http://localhost:3000/
 - http://localhost:3000/features
 - http://localhost:3000/docs
@@ -93,9 +97,11 @@ Open in browser:
 - http://localhost:3000/terms
 
 Expected result:
+
 - Each route loads without server crash.
 
 Optional metadata checks:
+
 - http://localhost:3000/robots.txt
 - http://localhost:3000/sitemap.xml
 
@@ -110,6 +116,7 @@ npm run web
 ```
 
 Expected result:
+
 - Expo starts and opens the app shell in browser.
 - Placeholder screens exist in navigation:
   - Login
@@ -129,18 +136,22 @@ npm run ios
 From repository root:
 
 ```bash
-cd /home/thoril/Documents/Coding/smn_app_v1
+cd /Users/tyler.t/Documents/Coding/Apps/bootstrap_app
 npm run lint
 npm run test
+npm run test -- auth-smoke
 npm run dev
 ```
 
 Expected result:
+
 - Commands execute (current scripts are placeholders until later steps).
+- `npm run test -- auth-smoke` prints `SMOKE_CHECK_OK` when backend auth smoke checks pass.
 
 ## 7. Smoke run pass checklist
 
 Mark smoke run as passing when all are true:
+
 - Backend starts and health/readiness endpoints respond.
 - Migrations apply and role seeds exist.
 - SEO web app serves all required public routes.

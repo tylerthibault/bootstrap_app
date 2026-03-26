@@ -1,1 +1,3 @@
-console.log("Install script placeholder: workspace dependencies will be added in later steps.");
+console.log(
+  "Install complete. Run `npm run bootstrap` to initialize local env files and backend Python dependencies.",
+);

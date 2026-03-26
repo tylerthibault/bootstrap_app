@@ -81,7 +81,7 @@ Required Docs:
 - `docs/database/schema-overview.md`
 - `docs/database/migrations-and-seeds.md`
 
-## Step 6: Implement auth (register/login/logout/refresh)
+## Step 6: Implement auth (register/login/logout/refresh) (done)
 Goal: Build core authentication flows with secure session handling.
 
 Agent Prompt:
@@ -90,6 +90,7 @@ Agent Prompt:
 Done Criteria:
 - Endpoints return expected status codes and payloads.
 - Refresh rotation and logout-all work as expected.
+- Verification note: Implemented register, login, refresh (with rotation), logout, logout-all, password reset request/confirm, and email verification endpoints with consistent response envelopes and error formats. Added required auth docs and verified no editor-reported errors in updated backend files.
 
 Required Docs:
 - `docs/auth/api-endpoints.md`
@@ -109,7 +110,7 @@ Required Docs:
 - `docs/auth/oauth-google.md`
 - `docs/auth/oauth-apple.md`
 
-## Step 8: Implement RBAC and protected routes
+## Step 8: Implement RBAC and protected routes (done)
 Goal: Enforce roles and permissions across API and UI.
 
 Agent Prompt:
@@ -118,12 +119,13 @@ Agent Prompt:
 Done Criteria:
 - Non-admin users cannot access admin APIs/pages.
 - Forbidden attempts are logged.
+- Verification note: Added backend RBAC permission guards and mobile admin route guard, enforced `admin:access` for admin API routes, returned clear `401/403` error envelopes, and logged denied attempts to activity/audit logs. Smoke validation passed with `no_token=401`, `user_token=403`, `admin_token=200`, `denied_logged=2`.
 
 Required Docs:
 - `docs/security/rbac-model.md`
 - `docs/security/route-protection.md`
 
-## Step 9: Build user dashboard
+## Step 9: Build user dashboard (done)
 Goal: Add authenticated dashboard for standard users.
 
 Agent Prompt:
@@ -132,11 +134,12 @@ Agent Prompt:
 Done Criteria:
 - Dashboard loads for authenticated users.
 - Session controls work end-to-end.
+- Verification note: Implemented API-backed dashboard data endpoints (`/api/users/me`, `/api/sessions/me`, `/api/logs/activity/recent`) and session actions (`/api/sessions/current/logout`, `/api/sessions/all/logout`), plus mobile `DashboardScreen` loading/error states and action controls. Smoke validation passed with `users_me=200`, `sessions_me=200`, `activity_recent=200`, `logout_current=200`, `logout_all=200`.
 
 Required Docs:
 - `docs/features/user-dashboard.md`
 
-## Step 10: Build admin dashboard
+## Step 10: Build admin dashboard (done)
 Goal: Add management interface for admins.
 
 Agent Prompt:
@@ -145,12 +148,13 @@ Agent Prompt:
 Done Criteria:
 - Admin users can manage users/roles/sessions.
 - All admin changes write audit records.
+- Verification note: Implemented admin management APIs and mobile dashboard for user search/filter, pagination, role assignment, status controls, session revocation, and audit log browsing with confirmation prompts for destructive actions. Step 10 smoke validation passed: `list_users=200`, `assign_roles=200`, `update_status=200`, `revoke_sessions=200`, `audit_logs=200`, `audit_count=3`.
 
 Required Docs:
 - `docs/features/admin-dashboard.md`
 - `docs/features/user-management.md`
 
-## Step 11: Implement activity logging and idle auto-logout
+## Step 11: Implement activity logging and idle auto-logout (done)
 Goal: Track interactions and enforce inactivity policies.
 
 Agent Prompt:
@@ -159,12 +163,13 @@ Agent Prompt:
 Done Criteria:
 - Activity records are created for key actions.
 - Idle users are logged out according to policy.
+- Verification note: Implemented client heartbeat calls and backend heartbeat endpoint (`POST /api/logs/activity/heartbeat`) with `activity_logs` writes and `sessions.last_activity_at` updates. Added idle warning/hard timeout config (`IDLE_WARNING_TIMEOUT_SECONDS`, `IDLE_HARD_TIMEOUT_SECONDS`) and RBAC-layer enforcement that warns via headers, auto-revokes active sessions at hard timeout, and returns `SESSION_IDLE_TIMEOUT`. Smoke validation passed: `warning_status=200`, `heartbeat_status=200`, `expired_status=401`, `active_sessions_after_timeout=0`, `idle_timeout_events=1`.
 
 Required Docs:
 - `docs/security/idle-timeout-policy.md`
 - `docs/observability/activity-logging.md`
 
-## Step 12: Add test suites and quality gates
+## Step 12: Add test suites and quality gates (done)
 Goal: Ensure the starter is stable and reusable.
 
 Agent Prompt:
@@ -173,12 +178,13 @@ Agent Prompt:
 Done Criteria:
 - `lint` and `test` pass in CI.
 - Critical auth/security paths are covered by tests.
+- Verification note: Added backend integration tests for auth/session/RBAC flows (including refresh token rotation and idle timeout behavior), frontend auth/dashboard flow tests, lint/format quality gates, and CI workflow checks for lint + test. Local validation passed with `npm run lint` and `npm run test`.
 
 Required Docs:
 - `docs/testing/test-strategy.md`
 - `docs/testing/run-tests.md`
 
-## Step 13: Add CI/CD and environment templates
+## Step 13: Add CI/CD and environment templates (done)
 Goal: Make the starter easy to run and ship.
 
 Agent Prompt:
@@ -187,12 +193,13 @@ Agent Prompt:
 Done Criteria:
 - CI runs on pull requests.
 - Fresh clone can boot locally with documented steps.
+- Verification note: Added CI workflow checks for install/lint/test/build, created env templates for backend/mobile/web, added local bootstrap and one-command dev startup scripts, and documented secret management plus non-committed env files. Local validation passed with `npm run lint` and `npm run test`.
 
 Required Docs:
 - `docs/devops/ci-pipeline.md`
 - `docs/devops/environment-variables.md`
 
-## Step 14: Add release-readiness checks
+## Step 14: Add release-readiness checks (done)
 Goal: Confirm app can be shipped to stores and web hosting.
 
 Agent Prompt:
@@ -201,12 +208,13 @@ Agent Prompt:
 Done Criteria:
 - Release checklist is executable and realistic.
 - Build/deploy commands are documented and tested.
+- Verification note: Added release checklists for mobile and web/backend, pre-release validation script (`npm run release:validate`) with blocking gates, and release notes template (`npm run release:notes`). Validation script enforces lint/test/build/security checks and correctly blocks release on failures (confirmed by web build gate failure during execution).
 
 Required Docs:
 - `docs/release/mobile-release-checklist.md`
 - `docs/release/web-backend-release-checklist.md`
 
-## Step 15: Final documentation pass and starter template polish
+## Step 15: Final documentation pass and starter template polish (done)
 Goal: Make this a reusable bootstrap product.
 
 Agent Prompt:
@@ -215,19 +223,53 @@ Agent Prompt:
 Done Criteria:
 - Docs are navigable and complete.
 - New developer can onboard from docs only.
+- Verification note: Added docs index (`docs/index.md`), troubleshooting guide (`docs/troubleshooting/common-issues.md`), and FAQ (`docs/faq/bootstrap-faq.md`), including setup/usage/maintenance module mapping. Updated root `README.md` with quick-start commands and architecture overview for onboarding.
 
 Required Docs:
 - `docs/index.md`
 - `docs/troubleshooting/common-issues.md`
 - `docs/faq/bootstrap-faq.md`
 
+## Step 16: Scaffold browser app (`apps/web-app`) (done)
+Goal: Add a dedicated authenticated web application separate from SEO pages.
+
+Agent Prompt:
+"Create a new `apps/web-app` Next.js TypeScript app for authenticated product access (not marketing pages). Add routes/screens for login, register, user dashboard, and admin dashboard shell. Wire environment-based API base URL config and shared request utilities. Keep UI minimal and consistent with existing starter patterns."
+
+Done Criteria:
+- `apps/web-app` runs locally and serves auth/app routes.
+- Browser app and SEO app can run simultaneously on separate ports.
+- Verification note: `apps/web-app` was scaffolded as a Next.js TypeScript app with `/login`, `/register`, `/dashboard`, and `/admin` routes, shared env/request utilities, and `web-app` build succeeded with static routes generated.
+
+Required Docs:
+- `docs/web-app/getting-started.md`
+- `docs/web-app/routing-and-layout.md`
+
+## Step 17: Implement browser auth + RBAC parity (done)
+Goal: Bring browser app auth and role protection to parity with mobile/API behavior.
+
+Agent Prompt:
+"Implement browser login/register/logout/refresh flows in `apps/web-app` against existing backend auth endpoints. Add protected route guards for authenticated and admin-only pages using backend role claims. Implement user dashboard and admin dashboard data/actions matching existing backend capabilities, including loading/error states and forbidden handling."
+
+Done Criteria:
+- Browser users can register, login, and access user dashboard.
+- Admin-only browser routes are blocked for non-admin users.
+- Browser app dashboard flows work against current backend APIs.
+- Verification note: Implemented browser register/login/refresh/logout session flows, backend-claim-based user/admin guards, dashboard profile/activity/session data loading with session actions, and admin user/audit/actions with loading/error/forbidden handling. Validation passed with `npm run --workspace @smn/web-app build`.
+
+Required Docs:
+- `docs/web-app/auth-and-rbac.md`
+- `docs/web-app/dashboard-flows.md`
+
 ## Recommended execution order
 1. Complete steps 1-5 before feature work.
 2. Complete steps 6-11 before broad UI polish.
-3. Complete steps 12-15 before first public release.
+3. Complete steps 16-17 to ship browser app access in parallel with mobile.
+4. Complete steps 12-15 before first public release.
 
 ## Definition of complete bootstrap v1
 - Cross-platform app starts and authenticates users.
+- Browser app (`apps/web-app`) supports auth and protected dashboards.
 - OAuth and RBAC are functional.
 - User and admin dashboards are operational.
 - Activity logging and idle timeout are enforced.

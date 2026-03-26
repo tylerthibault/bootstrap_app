@@ -1,8 +1,8 @@
 export default function HomePage() {
   return (
-    <main>
-      <h1>Bootstrap Platform</h1>
-      <p>Starter SEO homepage for public discovery.</p>
+    <main className="page-card">
+      <h1 className="page-title">Bootstrap Platform</h1>
+      <p className="page-copy">Starter SEO homepage for public discovery.</p>
     </main>
   );
 }

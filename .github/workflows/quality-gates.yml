@@ -1,0 +1,44 @@
+name: quality-gates
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install npm dependencies
+        run: npm install
+
+      - name: Install backend Python dependencies
+        run: pip install -r apps/backend/requirements.txt
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+      - name: Build web-seo
+        run: npm run --workspace @smn/web-seo build
+
+      - name: Release Validation
+        run: npm run release:validate

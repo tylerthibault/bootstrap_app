@@ -1,8 +1,8 @@
 export default function TermsPage() {
   return (
-    <main>
-      <h1>Terms</h1>
-      <p>Terms of service placeholder.</p>
+    <main className="page-card">
+      <h1 className="page-title">Terms</h1>
+      <p className="page-copy">Terms of service placeholder.</p>
     </main>
   );
 }

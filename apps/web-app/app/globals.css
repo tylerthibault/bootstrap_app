@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+.app-shell {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: var(--space-xl);
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.app-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.app-title {
+  margin: 0;
+  font-size: var(--font-title);
+  font-weight: 700;
+}
+
+.app-section-title {
+  margin: 0;
+  font-size: var(--font-section);
+  font-weight: 700;
+}
+
+.app-copy {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.app-error {
+  margin: 0;
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.app-success {
+  margin: 0;
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.app-input {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: var(--font-body);
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+}
+
+.app-button {
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  background: var(--color-surfaceMuted);
+  color: var(--color-text-primary);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.app-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.app-row {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.app-list {
+  display: grid;
+  gap: var(--space-xs);
+}
