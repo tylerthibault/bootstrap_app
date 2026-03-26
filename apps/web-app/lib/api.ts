@@ -8,26 +8,40 @@ type RequestOptions = {
 };
 
 export async function apiRequest(path: string, options: RequestOptions = {}) {
-  const response = await fetch(`${env.apiBaseUrl}${path}`, {
-    method: options.method ?? "GET",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.accessToken
-        ? {
-            Authorization: `Bearer ${options.accessToken}`,
-          }
-        : {}),
-    },
-    body: options.body ? JSON.stringify(options.body) : undefined,
-    cache: "no-store",
-  });
+  try {
+    const response = await fetch(`${env.apiBaseUrl}${path}`, {
+      method: options.method ?? "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.accessToken
+          ? {
+              Authorization: `Bearer ${options.accessToken}`,
+            }
+          : {}),
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined,
+      cache: "no-store",
+    });
 
-  const payload = await response.json().catch(() => ({}));
-  return {
-    ok: response.ok,
-    status: response.status,
-    payload,
-  };
+    const payload = await response.json().catch(() => ({}));
+    return {
+      ok: response.ok,
+      status: response.status,
+      payload,
+    };
+  } catch {
+    return {
+      ok: false,
+      status: 0,
+      payload: {
+        ok: false,
+        error: {
+          code: "NETWORK_ERROR",
+          message: "Unable to reach API. Confirm backend is running and API URL is correct.",
+        },
+      },
+    };
+  }
 }
 
 type AuthedRequestOptions = Omit<RequestOptions, "accessToken">;

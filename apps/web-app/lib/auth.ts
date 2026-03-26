@@ -87,8 +87,42 @@ function resolveRoleFromProfile(profile: { roles?: string[] } | undefined): Brow
   return "user";
 }
 
+function extractTokens(payload: Record<string, unknown>): { accessToken?: string; refreshToken?: string } {
+  const tokens = (payload as { data?: { tokens?: { access_token?: unknown; refresh_token?: unknown } } })?.data?.tokens;
+  return {
+    accessToken: typeof tokens?.access_token === "string" ? tokens.access_token : undefined,
+    refreshToken: typeof tokens?.refresh_token === "string" ? tokens.refresh_token : undefined,
+  };
+}
+
+type RequestJsonResult = {
+  ok: boolean;
+  status: number;
+  payload: Record<string, unknown>;
+  networkError?: string;
+};
+
+async function requestJson(url: string, init: RequestInit): Promise<RequestJsonResult> {
+  try {
+    const response = await fetch(url, init);
+    const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+    return {
+      ok: response.ok,
+      status: response.status,
+      payload,
+    };
+  } catch {
+    return {
+      ok: false,
+      status: 0,
+      payload: {},
+      networkError: "Unable to reach API. Confirm backend is running and API URL is correct.",
+    };
+  }
+}
+
 export async function hydrateRoleFromProfile(accessToken: string): Promise<BrowserRole> {
-  const response = await fetch(`${env.apiBaseUrl}/api/users/me`, {
+  const result = await requestJson(`${env.apiBaseUrl}/api/users/me`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
@@ -96,12 +130,11 @@ export async function hydrateRoleFromProfile(accessToken: string): Promise<Brows
     cache: "no-store",
   });
 
-  if (!response.ok) {
-    throw new Error(`ROLE_LOOKUP_FAILED_${response.status}`);
+  if (!result.ok) {
+    throw new Error(`ROLE_LOOKUP_FAILED_${result.status || "NETWORK"}`);
   }
 
-  const payload = await response.json().catch(() => ({}));
-  const role = resolveRoleFromProfile(payload?.data?.profile);
+  const role = resolveRoleFromProfile((result.payload as { data?: { profile?: { roles?: string[] } } })?.data?.profile);
   setRole(role);
   return role;
 }
@@ -111,7 +144,7 @@ export async function loginWithPassword(credentials: { email: string; password: 
   role?: BrowserRole;
   error?: string;
 }> {
-  const response = await fetch(`${env.apiBaseUrl}/api/auth/login`, {
+  const result = await requestJson(`${env.apiBaseUrl}/api/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -120,16 +153,15 @@ export async function loginWithPassword(credentials: { email: string; password: 
     cache: "no-store",
   });
 
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
+  if (!result.ok) {
     return {
       ok: false,
-      error: parseApiErrorMessage(payload, "Login failed."),
+      error: result.networkError ?? parseApiErrorMessage(result.payload, "Login failed."),
     };
   }
 
-  const accessToken = payload?.data?.tokens?.access_token;
-  const refreshToken = payload?.data?.tokens?.refresh_token;
+  const payload = result.payload;
+  const { accessToken, refreshToken } = extractTokens(payload);
 
   if (typeof accessToken !== "string" || typeof refreshToken !== "string") {
     clearSession();
@@ -154,7 +186,7 @@ export async function registerWithPassword(input: {
   password: string;
   displayName?: string;
 }): Promise<{ ok: boolean; role?: BrowserRole; error?: string }> {
-  const response = await fetch(`${env.apiBaseUrl}/api/auth/register`, {
+  const result = await requestJson(`${env.apiBaseUrl}/api/auth/register`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -167,16 +199,15 @@ export async function registerWithPassword(input: {
     cache: "no-store",
   });
 
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
+  if (!result.ok) {
     return {
       ok: false,
-      error: parseApiErrorMessage(payload, "Registration failed."),
+      error: result.networkError ?? parseApiErrorMessage(result.payload, "Registration failed."),
     };
   }
 
-  const accessToken = payload?.data?.tokens?.access_token;
-  const refreshToken = payload?.data?.tokens?.refresh_token;
+  const payload = result.payload;
+  const { accessToken, refreshToken } = extractTokens(payload);
 
   if (typeof accessToken !== "string" || typeof refreshToken !== "string") {
     clearSession();
@@ -245,7 +276,7 @@ export async function refreshAccessSession(): Promise<{ ok: boolean; accessToken
     return { ok: false };
   }
 
-  const response = await fetch(`${env.apiBaseUrl}/api/auth/refresh`, {
+  const result = await requestJson(`${env.apiBaseUrl}/api/auth/refresh`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -254,14 +285,13 @@ export async function refreshAccessSession(): Promise<{ ok: boolean; accessToken
     cache: "no-store",
   });
 
-  if (!response.ok) {
+  if (!result.ok) {
     clearSession();
     return { ok: false };
   }
 
-  const payload = await response.json().catch(() => ({}));
-  const newAccess = payload?.data?.tokens?.access_token;
-  const newRefresh = payload?.data?.tokens?.refresh_token;
+  const payload = result.payload;
+  const { accessToken: newAccess, refreshToken: newRefresh } = extractTokens(payload);
   if (typeof newAccess !== "string" || typeof newRefresh !== "string") {
     clearSession();
     return { ok: false };
