@@ -8,7 +8,11 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { mobileTheme } from "../theme/tokens";
+import { RootStackParamList } from "../navigation/RootNavigator";
+
+type DashboardScreenProps = NativeStackScreenProps<RootStackParamList, "Dashboard">;
 
 type Profile = {
   id: number;
@@ -46,10 +50,12 @@ const DEFAULT_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://127
 const DEFAULT_ACCESS_TOKEN = process.env.EXPO_PUBLIC_ACCESS_TOKEN ?? "";
 const DEFAULT_REFRESH_TOKEN = process.env.EXPO_PUBLIC_REFRESH_TOKEN ?? "";
 
-export function DashboardScreen() {
-  const [apiBaseUrl, setApiBaseUrl] = useState(DEFAULT_API_BASE_URL);
-  const [accessToken, setAccessToken] = useState(DEFAULT_ACCESS_TOKEN);
-  const [refreshToken, setRefreshToken] = useState(DEFAULT_REFRESH_TOKEN);
+export function DashboardScreen({ route, navigation }: DashboardScreenProps) {
+  const params = route.params;
+  const [apiBaseUrl, setApiBaseUrl] = useState(params?.apiBaseUrl ?? DEFAULT_API_BASE_URL);
+  const [accessToken, setAccessToken] = useState(params?.accessToken ?? DEFAULT_ACCESS_TOKEN);
+  const [refreshToken, setRefreshToken] = useState(params?.refreshToken ?? DEFAULT_REFRESH_TOKEN);
+
 
   const [dashboard, setDashboard] = useState<DashboardData>({
     profile: null,
@@ -141,13 +147,13 @@ export function DashboardScreen() {
       if (!response.ok) {
         throw new Error("Failed to logout current session.");
       }
-      await loadDashboard();
+      navigation.replace("Login");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unexpected error while logging out current session.");
     } finally {
       setActionState("idle");
     }
-  }, [accessToken, apiBaseUrl, headers, loadDashboard, refreshToken]);
+  }, [accessToken, apiBaseUrl, headers, navigation, refreshToken]);
 
   const logoutAllSessions = useCallback(async () => {
     if (!apiBaseUrl || !accessToken) {
@@ -165,13 +171,21 @@ export function DashboardScreen() {
       if (!response.ok) {
         throw new Error("Failed to logout all sessions.");
       }
-      await loadDashboard();
+      navigation.replace("Login");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unexpected error while logging out all sessions.");
     } finally {
       setActionState("idle");
     }
-  }, [accessToken, apiBaseUrl, headers, loadDashboard]);
+  }, [accessToken, apiBaseUrl, headers, navigation]);
+
+  useEffect(() => {
+    // Auto-load dashboard when tokens are provided (e.g., coming from login/register)
+    if (params?.accessToken) {
+      void loadDashboard();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!apiBaseUrl || !accessToken) {

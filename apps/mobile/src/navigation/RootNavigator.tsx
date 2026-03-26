@@ -10,7 +10,11 @@ import { RegisterScreen } from "../screens/RegisterScreen";
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
-  Dashboard: undefined;
+  Dashboard: {
+    apiBaseUrl?: string;
+    accessToken?: string;
+    refreshToken?: string;
+  } | undefined;
   AdminDashboard: undefined;
 };
 

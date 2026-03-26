@@ -193,6 +193,7 @@ export default function AdminPage() {
   }
 
   return (
+    <div className="app-shell">
     <section className="app-card">
       <h1 className="app-title">Admin Dashboard</h1>
       {loading ? <p className="app-copy">Loading...</p> : null}
@@ -268,5 +269,6 @@ export default function AdminPage() {
       </button>
       <Link href="/dashboard">Back to user dashboard</Link>
     </section>
+    </div>
   );
 }

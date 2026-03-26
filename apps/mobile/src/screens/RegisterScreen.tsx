@@ -40,30 +40,45 @@ async function parseApiResponse(response: Response) {
   }
 }
 
+function getPasswordStrength(password: string): { label: string; color: string } | null {
+  if (!password) return null;
+  if (password.length < 8) return { label: "Too short (min 8 characters)", color: mobileTheme.colors.danger };
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  const strength = [hasUpper, hasLower, hasNumber, hasSpecial].filter(Boolean).length;
+  if (strength <= 2) return { label: "Weak", color: "#d97706" };
+  if (strength === 3) return { label: "Good", color: mobileTheme.colors.brand };
+  return { label: "Strong", color: mobileTheme.colors.success };
+}
+
 export function RegisterScreen({ navigation }: RegisterScreenProps) {
-  const [apiBaseUrl, setApiBaseUrl] = useState(DEFAULT_API_BASE_URL);
+  const [apiBaseUrl] = useState(DEFAULT_API_BASE_URL);
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [authData, setAuthData] = useState<RegisterResponseData | null>(null);
+
+  const passwordStrength = getPasswordStrength(password);
+  const passwordsMatch = !confirmPassword || password === confirmPassword;
 
   const canSubmit = useMemo(() => {
-    if (!apiBaseUrl.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
+    if (!email.trim() || !password.trim() || !confirmPassword.trim()) {
       return false;
     }
     if (password !== confirmPassword) {
       return false;
     }
     return password.length >= 8;
-  }, [apiBaseUrl, confirmPassword, email, password]);
+  }, [confirmPassword, email, password]);
 
   const submitRegistration = async () => {
-    if (!apiBaseUrl.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
-      setError("API base URL, email, password, and confirm password are required.");
+    if (!email.trim() || !password.trim() || !confirmPassword.trim()) {
+      setError("Email, password, and confirm password are required.");
       return;
     }
     if (password.length < 8) {
@@ -77,7 +92,6 @@ export function RegisterScreen({ navigation }: RegisterScreenProps) {
 
     setLoading(true);
     setError(null);
-    setSuccessMessage(null);
 
     try {
       const response = await fetch(`${apiBaseUrl.trim()}/api/auth/register`, {
@@ -98,8 +112,11 @@ export function RegisterScreen({ navigation }: RegisterScreenProps) {
         throw new Error(apiMessage || "Registration failed.");
       }
 
-      setAuthData(body.data ?? null);
-      setSuccessMessage("Registration successful. You can now continue to Dashboard or Login.");
+      navigation.replace("Dashboard", {
+        apiBaseUrl: apiBaseUrl.trim(),
+        accessToken: body.data?.tokens?.access_token ?? "",
+        refreshToken: body.data?.tokens?.refresh_token ?? "",
+      });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unexpected registration error.");
     } finally {
@@ -108,79 +125,101 @@ export function RegisterScreen({ navigation }: RegisterScreenProps) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Register</Text>
+    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <View style={styles.header}>
+        <Text style={styles.title}>Create an account</Text>
+        <Text style={styles.subtitle}>Get started — it only takes a moment.</Text>
+      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Create Account</Text>
-        <TextInput
-          style={styles.input}
-          value={apiBaseUrl}
-          onChangeText={setApiBaseUrl}
-          autoCapitalize="none"
-          placeholder="API Base URL"
-        />
-        <TextInput
-          style={styles.input}
-          value={displayName}
-          onChangeText={setDisplayName}
-          placeholder="Display Name (optional)"
-        />
-        <TextInput
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          placeholder="Email"
-        />
-        <TextInput
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          placeholder="Password"
-        />
-        <TextInput
-          style={styles.input}
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          secureTextEntry
-          placeholder="Confirm Password"
-        />
+      <View style={styles.card}>
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>
+            Name <Text style={styles.optionalLabel}>(optional)</Text>
+          </Text>
+          <TextInput
+            style={styles.input}
+            value={displayName}
+            onChangeText={setDisplayName}
+            placeholder="Your name"
+            placeholderTextColor={mobileTheme.colors.textMuted}
+            autoComplete="name"
+          />
+        </View>
 
-        <Pressable style={styles.button} onPress={() => void submitRegistration()} disabled={!canSubmit || loading}>
-          <Text style={styles.buttonText}>{loading ? "Registering..." : "Create Account"}</Text>
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>Email address</Text>
+          <TextInput
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            placeholder="you@example.com"
+            placeholderTextColor={mobileTheme.colors.textMuted}
+            autoComplete="email"
+          />
+        </View>
+
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>Password</Text>
+          <View style={styles.inputRow}>
+            <TextInput
+              style={[styles.input, { flex: 1 }]}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              placeholder="Minimum 8 characters"
+              placeholderTextColor={mobileTheme.colors.textMuted}
+              autoComplete="new-password"
+            />
+            <Pressable style={styles.toggleBtn} onPress={() => setShowPassword((v) => !v)}>
+              <Text style={styles.toggleBtnText}>{showPassword ? "Hide" : "Show"}</Text>
+            </Pressable>
+          </View>
+          {passwordStrength ? (
+            <Text style={[styles.strengthText, { color: passwordStrength.color }]}>{passwordStrength.label}</Text>
+          ) : null}
+        </View>
+
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>Confirm password</Text>
+          <TextInput
+            style={[styles.input, confirmPassword && !passwordsMatch ? styles.inputError : undefined]}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry={!showPassword}
+            placeholder="Re-enter your password"
+            placeholderTextColor={mobileTheme.colors.textMuted}
+            autoComplete="new-password"
+          />
+          {confirmPassword && !passwordsMatch ? (
+            <Text style={styles.fieldErrorText}>Passwords do not match</Text>
+          ) : null}
+        </View>
+
+        {error ? (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
+
+        <Pressable
+          style={[styles.primaryButton, (!canSubmit || loading) && styles.buttonDisabled]}
+          onPress={() => void submitRegistration()}
+          disabled={!canSubmit || loading}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color={mobileTheme.colors.brandContrast} />
+          ) : (
+            <Text style={styles.primaryButtonText}>Create account</Text>
+          )}
         </Pressable>
       </View>
 
-      {loading ? (
-        <View style={styles.loadingRow}>
-          <ActivityIndicator size="small" />
-          <Text>Processing...</Text>
-        </View>
-      ) : null}
-
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
-
-      {authData ? (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Session</Text>
-          <Text>User: {authData.user?.email ?? "-"}</Text>
-          <Text selectable>Access Token: {authData.tokens?.access_token ?? "-"}</Text>
-          <Text selectable>Refresh Token: {authData.tokens?.refresh_token ?? "-"}</Text>
-
-          <Pressable style={styles.button} onPress={() => navigation.navigate("Dashboard")}>
-            <Text style={styles.buttonText}>Go To Dashboard</Text>
-          </Pressable>
-        </View>
-      ) : null}
-
-      <View style={styles.section}>
-        <Text>Already have an account?</Text>
-        <Pressable style={styles.button} onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.buttonText}>Go To Login</Text>
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>Already have an account? </Text>
+        <Pressable onPress={() => navigation.navigate("Login")}>
+          <Text style={styles.linkText}>Sign in</Text>
         </Pressable>
       </View>
     </ScrollView>
@@ -189,61 +228,121 @@ export function RegisterScreen({ navigation }: RegisterScreenProps) {
 
 const styles = StyleSheet.create({
   container: {
-    padding: mobileTheme.spacing.lg,
-    gap: mobileTheme.spacing.lg,
+    flexGrow: 1,
+    padding: mobileTheme.spacing.xl,
+    gap: mobileTheme.spacing.xl,
     backgroundColor: mobileTheme.colors.background,
+    justifyContent: "center",
   },
-  section: {
-    backgroundColor: mobileTheme.colors.surface,
-    borderWidth: 1,
-    borderColor: mobileTheme.colors.border,
-    borderRadius: mobileTheme.radius.md,
-    padding: mobileTheme.spacing.md,
-    gap: mobileTheme.spacing.sm,
-  },
-  sectionTitle: {
-    fontSize: mobileTheme.font.sizes.section,
-    color: mobileTheme.colors.textPrimary,
-    fontWeight: mobileTheme.font.weights.bold,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: mobileTheme.colors.border,
-    borderRadius: mobileTheme.radius.sm,
-    paddingHorizontal: 10,
-    paddingVertical: mobileTheme.spacing.sm,
-    color: mobileTheme.colors.textPrimary,
-    backgroundColor: mobileTheme.colors.surface,
-  },
-  button: {
-    borderWidth: 1,
-    borderColor: mobileTheme.colors.borderStrong,
-    borderRadius: mobileTheme.radius.sm,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    alignItems: "center",
-    backgroundColor: mobileTheme.colors.surfaceMuted,
-  },
-  buttonText: {
-    fontWeight: mobileTheme.font.weights.bold,
-    color: mobileTheme.colors.textPrimary,
-  },
-  loadingRow: {
-    flexDirection: "row",
-    gap: mobileTheme.spacing.sm,
-    alignItems: "center",
-  },
-  errorText: {
-    fontWeight: mobileTheme.font.weights.semibold,
-    color: mobileTheme.colors.danger,
-  },
-  successText: {
-    fontWeight: mobileTheme.font.weights.semibold,
-    color: mobileTheme.colors.success,
+  header: {
+    gap: mobileTheme.spacing.xs,
   },
   title: {
     fontSize: mobileTheme.font.sizes.title,
     color: mobileTheme.colors.textPrimary,
     fontWeight: mobileTheme.font.weights.bold,
   },
+  subtitle: {
+    fontSize: mobileTheme.font.sizes.body,
+    color: mobileTheme.colors.textSecondary,
+  },
+  card: {
+    backgroundColor: mobileTheme.colors.surface,
+    borderWidth: 1,
+    borderColor: mobileTheme.colors.border,
+    borderRadius: mobileTheme.radius.lg,
+    padding: mobileTheme.spacing.xl,
+    gap: mobileTheme.spacing.lg,
+  },
+  fieldGroup: {
+    gap: mobileTheme.spacing.xs,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: mobileTheme.font.weights.semibold,
+    color: mobileTheme.colors.textPrimary,
+  },
+  optionalLabel: {
+    fontWeight: mobileTheme.font.weights.regular,
+    color: mobileTheme.colors.textMuted,
+  },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: mobileTheme.spacing.sm,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: mobileTheme.colors.border,
+    borderRadius: mobileTheme.radius.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: mobileTheme.font.sizes.body,
+    color: mobileTheme.colors.textPrimary,
+    backgroundColor: mobileTheme.colors.surface,
+  },
+  inputError: {
+    borderColor: mobileTheme.colors.danger,
+  },
+  toggleBtn: {
+    paddingHorizontal: mobileTheme.spacing.sm,
+    paddingVertical: 10,
+  },
+  toggleBtnText: {
+    fontSize: 13,
+    color: mobileTheme.colors.textMuted,
+    fontWeight: mobileTheme.font.weights.medium,
+  },
+  strengthText: {
+    fontSize: 13,
+    fontWeight: mobileTheme.font.weights.medium,
+  },
+  fieldErrorText: {
+    fontSize: 13,
+    color: mobileTheme.colors.danger,
+    fontWeight: mobileTheme.font.weights.medium,
+  },
+  errorBox: {
+    backgroundColor: "#fef2f2",
+    borderWidth: 1,
+    borderColor: "#fecaca",
+    borderRadius: mobileTheme.radius.sm,
+    padding: mobileTheme.spacing.md,
+  },
+  errorText: {
+    color: mobileTheme.colors.danger,
+    fontSize: 14,
+    fontWeight: mobileTheme.font.weights.medium,
+  },
+  primaryButton: {
+    backgroundColor: mobileTheme.colors.brand,
+    borderRadius: mobileTheme.radius.sm,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 44,
+  },
+  primaryButtonText: {
+    color: mobileTheme.colors.brandContrast,
+    fontWeight: mobileTheme.font.weights.bold,
+    fontSize: mobileTheme.font.sizes.body,
+  },
+  buttonDisabled: {
+    opacity: 0.55,
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  footerText: {
+    fontSize: 14,
+    color: mobileTheme.colors.textMuted,
+  },
+  linkText: {
+    fontSize: 14,
+    color: mobileTheme.colors.brand,
+    fontWeight: mobileTheme.font.weights.medium,
+  },
 });
+

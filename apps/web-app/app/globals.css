@@ -17,6 +17,16 @@ body {
   gap: var(--space-lg);
 }
 
+/* Auth pages: vertically and horizontally centered */
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  background: var(--color-background);
+}
+
 .app-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -24,6 +34,19 @@ body {
   padding: var(--space-lg);
   display: grid;
   gap: var(--space-sm);
+}
+
+/* Wider card for auth pages with more breathing room */
+.auth-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  display: grid;
+  gap: var(--space-lg);
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
 }
 
 .app-title {
@@ -55,6 +78,60 @@ body {
   font-weight: 600;
 }
 
+/* Alert box for error messages */
+.app-alert-error {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: var(--color-danger);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Input group: label + input stacked */
+.input-group {
+  display: grid;
+  gap: 4px;
+}
+
+.input-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* Wrapper for password input + toggle button */
+.input-with-action {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-action .app-input {
+  width: 100%;
+  padding-right: 44px;
+  box-sizing: border-box;
+}
+
+.input-action-btn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  user-select: none;
+}
+
+.input-action-btn:hover {
+  color: var(--color-text-secondary);
+}
+
 .app-input {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -62,6 +139,35 @@ body {
   font-size: var(--font-body);
   color: var(--color-text-primary);
   background: var(--color-surface);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.app-input:focus {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* Primary button: brand blue */
+.app-button-primary {
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 11px 12px;
+  background: var(--color-brand);
+  color: var(--color-brand-contrast);
+  font-weight: 700;
+  font-size: var(--font-body);
+  cursor: pointer;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.app-button-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.app-button-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .app-button {
@@ -72,11 +178,52 @@ body {
   color: var(--color-text-primary);
   font-weight: 700;
   cursor: pointer;
+  transition: background 0.15s;
+}
+
+.app-button:hover:not(:disabled) {
+  background: #e2e8f0;
 }
 
 .app-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Subtle text link */
+.app-link {
+  color: var(--color-brand);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.app-link:hover {
+  text-decoration: underline;
+}
+
+/* Centered footer with links */
+.auth-footer {
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+/* Divider with "or" text */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
 }
 
 .app-row {
@@ -89,4 +236,10 @@ body {
 .app-list {
   display: grid;
   gap: var(--space-xs);
+}
+
+/* Form fields grid with slightly larger gap */
+.auth-fields {
+  display: grid;
+  gap: var(--space-md);
 }
